@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymleaf.org/extras/spring-security">
+<body>
+<header class="header" th:fragment="header">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                    <ul class="nav navbar-nav">
+                        <li class="nav-item" id="home"><a class="nav-link" href="/">Home</a></li>
+                        <li class="nav-item" id="info"><a class="nav-link" href="/info">Info</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="nav-item text-light pt-2" th:text="${#authentication.getName()} + '  '"></li>
+                        <li class="nav-item">
+                            <a sec:authorize="isAuthenticated()" th:href="@{/logout}" class="nav-link">Logout</a>
+                            <a sec:authorize="isAnonymous()" th:href="@{/login}" class="nav-link">Login</a>
+                        </li>
+                    </ul>
+            </div>
+    </nav>
+    <script>
+        var url = document.URL;
+        if (url.indexOf("/info") !== -1) {
+            $('#info').addClass("active");
+        } else {
+            $('#home').addClass("active");
+        }
+    </script>
+</header>
+</body>
+</html>

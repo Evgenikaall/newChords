@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Persons page</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+
+        function deleteUser(id) {
+            const url = '/api/persons/'.concat(id.toString());
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                type: 'DELETE',
+                cache: false,
+                contentType: 'application/json',
+                success: location.reload()
+            })
+        }
+
+        function add_person() {
+            $.ajax({
+                url: '/api/persons',
+                dataType: 'json',
+                type: 'POST',
+                cache: false,
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    firstName: $("#firstName").val(),
+                    lastName: $("#lastName").val()
+                })
+            })
+            location.reload();
+        }
+
+        function updateUser() {
+            $.ajax({
+                url: '/api/persons',
+                dataType: 'json',
+                type: 'PUT',
+                cache: false,
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    id: $('#id').val(),
+                    firstName: $('#first_name').val(),
+                    lastName: $('#last_name').val()
+                })
+            })
+            success: location.reload();
+        }
+
+        function fillEditForm(id) {
+            $.get("api/persons/".concat(id.toString()), function (person) {
+                    $('#id').val(person.id);
+                    $('#first_name').val(person.firstName);
+                    $('#last_name').val(person.lastName);
+                }
+            );
+        }
+
+        function showUser() {
+            $.get('/api/persons', function (person) {
+                if (person.length != 0) {
+                    let table = '<table class="table table-bordered table-hover pt-5"><thead class="thead-dark"><tr>' +
+                        '<th scope="col">First Name</th><th scope="col">Last Name</th>' +
+                        '<th></th>' +
+                        '</tr></thead>';
+                    for (let i = 0; i < person.length; i++) {
+                        table = table + "<tr><td scope='row'>" + person[i].firstName + "</td><td scope='row'>" + person[i].lastName + "</td><td scope='row' class='p-2'>";
+                        table = table + '<button type="button" fillEditForm(' + person[i].id + ')" class="btn btn-primary" data-toggle="modal" data-target="#editModal">edit</button>';
+                        table = table + '<button type="button" onclick="deleteUser(' + person[i].id + ')" class="btn btn-danger">delete</button>';
+                        table = table + "</td></tr>";
+                    }
+                    table = table + "</table>";
+                    $("#persons").html(table);
+                } else {
+                    $("#persons").html('<h1 class="description text-center">Data is empty</h1>');
+                }
+            })
+        }
+
+
+        $(document).ready(function () {
+            showUser();
+        });
+
+    </script>
+</head>
+
+<body>
+<header th:insert="~{header :: header}"></header>
+
+<div class="selection__block" sec:authorize="hasAuthority('ADMIN')">
+    <div class="container">
+        <div class="float-right pt-2 pb-4">
+            <button type="button" data-toggle="modal" data-target="#addModal"
+                    class="btn btn-success">add
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="persons" class="container pt-5"></div>
+
+
+<!--Modal block-->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalTittle">Edit form</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="">
+                    <div class="form-group text-center">
+                        <input type="hidden" id="id">
+                        <label for="first_name" class="control-label">FirstName</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name">
+                    </div>
+                    <div class="form-group text-center">
+                        <label for="last_name" class="control-label">LastName</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="updateUser()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalTittle">Add new person</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form th:action="@{/api/persons}" id="append_person" th:method="post">
+                    <div class="form-group text-center">
+                        <label for="first_name" class="control-label">FirstName</label>
+                        <input type="text" class="form-control" id="firstName" name="first_name">
+                    </div>
+                    <div class="form-group text-center">
+                        <label for="last_name" class="control-label">LastName</label>
+                        <input type="text" class="form-control" id="lastName" name="last_name">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="add_person()" class="btn btn-primary">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
